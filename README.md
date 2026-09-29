@@ -1,36 +1,43 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PIPA Dashboard
 
-## Getting Started
+Dashboard local de observabilidade da Plataforma PIPA. A primeira tela apresenta a visão geral dos serviços com filtros, métricas, gráficos e exportação CSV/PDF.
 
-First, run the development server:
+## Execução local
+
+Requisitos: Node.js 20 ou superior e PIPA Core acessível.
 
 ```bash
+cp .env.example .env.local
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Acesse `http://localhost:3000`. A configuração server-side padrão é:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```env
+PIPA_API_URL=http://localhost:8081
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+O navegador nunca acessa essa variável. Os Route Handlers em `/api/observability/*` funcionam como BFF e encaminham ao Core somente `from`, `to`, `persona`, `toolName` e `institution`.
 
-## Learn More
+## Funcionalidades
 
-To learn more about Next.js, take a look at the following resources:
+- período inicial de 30 dias e intervalo personalizado no calendário de `America/Sao_Paulo`;
+- filtros sincronizados na URL e atualização automática ou manual;
+- cards de volume, duração média, ferramentas ativas e taxa de sucesso;
+- gráficos de ferramentas, tendência diária, status e canais;
+- exportação do conjunto filtrado em CSV ou PDF;
+- estados de carregamento, vazio e erro recuperável;
+- layout responsivo e navegação acessível por teclado;
+- sidebar fixa durante a rolagem em desktop e tablet, preservando a navegação móvel recolhível;
+- tabelas semanticamente ocultas como alternativa aos gráficos.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Verificação
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm test
+npm run lint
+npm run build
+```
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Não há polling nem publicação nesta entrega. A proteção administrativa será definida em etapa posterior.
