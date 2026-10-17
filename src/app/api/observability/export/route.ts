@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { pickObservabilityFilters } from "@/lib/observability/query";
+import { queryDateRangeError } from "@/lib/observability/date-query";
 import {
   apiErrorResponse,
   PipaRequestError,
@@ -13,6 +14,8 @@ export async function GET(request: NextRequest): Promise<Response> {
     return apiErrorResponse(new PipaRequestError("Formato deve ser csv ou pdf.", 400));
   }
 
+  const error = queryDateRangeError(request.nextUrl.searchParams);
+  if (error) return apiErrorResponse(new PipaRequestError(error, 400));
   const params = pickObservabilityFilters(request.nextUrl.searchParams);
   params.set("format", requestedFormat);
 

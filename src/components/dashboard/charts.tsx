@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Area,
   AreaChart,
@@ -16,6 +17,7 @@ import {
 } from "recharts";
 import styles from "@/app/page.module.css";
 import { formatNumber, formatPercent } from "@/lib/observability/format";
+import { formatToolLabel } from "@/lib/observability/tool-labels";
 import type { DailyTrend, Distribution, ToolUsage } from "@/lib/observability/types";
 
 const COLORS = ["#44A866", "#AB4645", "#D89A45", "#2E78C8", "#299693"];
@@ -40,10 +42,51 @@ function AccessibleTable({
   );
 }
 
-export function ToolUsageChart({ data }: { data: ToolUsage[] }) {
-  const rows = data.slice(0, 10);
+function wrapToolLabel(label: string, maxCharacters: number): string[] {
+  const lines: string[] = [];
+  for (const word of label.split(" ").flatMap((word) => word.match(new RegExp(`.{1,${maxCharacters}}`, "g")) ?? [])) {
+    const last = lines.length - 1;
+    if (last >= 0 && lines[last].length + word.length + 1 <= maxCharacters) lines[last] += ` ${word}`;
+    else lines.push(word);
+  }
+  return lines;
+}
+
+function ToolLabelTick({ x = 0, y = 0, payload, width }: {
+  x?: number | string;
+  y?: number | string;
+  payload?: { value: string };
+  width: number;
+}) {
+  const label = payload?.value ?? "";
+  const maxCharacters = Math.max(12, Math.floor((width - 16) / 7));
+  const lines = wrapToolLabel(label, maxCharacters);
+  return <text x={x} y={y} textAnchor="end" fill="#9AA2A9" fontSize={12}>
+    <title>{label}</title>
+    {lines.map((line, index) => <tspan key={index} x={x} dy={index === 0 ? 4 - (lines.length - 1) * 7 : 14}>{line}</tspan>)}
+  </text>;
+}
+
+export function ToolUsageChart({ data, toolLabels }: { data: ToolUsage[]; toolLabels?: Record<string, string> }) {
+  const [chartWidth, setChartWidth] = useState(640);
+  const rows = data.slice(0, 10).map((item) => ({ ...item, toolLabel: formatToolLabel(item.toolName, toolLabels) }));
+  const labelWidth = chartWidth < 600 ? 150 : 290;
+  const rowHeight = Math.max(56, ...rows.map((item) => wrapToolLabel(item.toolLabel, Math.floor((labelWidth - 16) / 7)).length * 14 + 20));
   if (!rows.length) return <EmptyChart />;
-  return <><div className={styles.chartCanvas}><ResponsiveContainer width="100%" height="100%"><BarChart data={rows} margin={{ top: 12, right: 4, left: -22, bottom: 34 }} accessibilityLayer><CartesianGrid stroke="#2c3338" vertical={false} /><XAxis dataKey="toolName" angle={-28} textAnchor="end" interval={0} tick={{ fill: "#9AA2A9", fontSize: 10 }} /><YAxis allowDecimals={false} tick={{ fill: "#9AA2A9", fontSize: 10 }} /><Tooltip cursor={{ fill: "rgba(46,120,200,.08)" }} contentStyle={{ background: "#1C2428", border: "1px solid #3a4147", borderRadius: 8 }} formatter={(value) => [formatNumber(Number(value)), "Requisições"]} /><Bar dataKey="requests" fill="#299693" radius={[5, 5, 0, 0]} /></BarChart></ResponsiveContainer></div><AccessibleTable caption="Top 10 ferramentas por número de requisições" rows={rows.map((item) => ({ label: item.toolName, value: item.requests }))} /></>;
+  return <>
+    <div className={styles.toolChartCanvas} style={{ height: Math.max(240, rows.length * rowHeight + 40) }}>
+      <ResponsiveContainer width="100%" height="100%" onResize={(width) => setChartWidth(width)}>
+        <BarChart data={rows} layout="vertical" margin={{ top: 8, right: 16, left: 0, bottom: 4 }} accessibilityLayer>
+          <CartesianGrid stroke="#2c3338" horizontal={false} />
+          <XAxis type="number" allowDecimals={false} tick={{ fill: "#9AA2A9", fontSize: 11 }} />
+          <YAxis type="category" dataKey="toolLabel" width={labelWidth} interval={0} tick={<ToolLabelTick width={labelWidth} />} />
+          <Tooltip cursor={{ fill: "rgba(46,120,200,.08)" }} contentStyle={{ background: "#1C2428", border: "1px solid #3a4147", borderRadius: 8 }} formatter={(value) => [formatNumber(Number(value)), "Requisições"]} />
+          <Bar dataKey="requests" fill="#299693" radius={[0, 5, 5, 0]} maxBarSize={30} />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+    <AccessibleTable caption="Top 10 ferramentas por número de requisições" rows={rows.map((item) => ({ label: item.toolLabel, value: item.requests }))} />
+  </>;
 }
 
 export function DailyTrendChart({ data }: { data: DailyTrend[] }) {

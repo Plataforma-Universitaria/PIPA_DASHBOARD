@@ -9,6 +9,7 @@ export interface DashboardFilterState {
   persona: string;
   toolName: string;
   institution: string;
+  aiProvider: "" | "local" | "external";
 }
 
 function saoPauloDateParts(now: Date): [number, number, number] {
@@ -39,8 +40,15 @@ export function datesForPreset(preset: Exclude<PeriodPreset, "custom">, now = ne
   return { fromDate: subtractCalendarDays(toDate, Number(preset) - 1), toDate };
 }
 
-function validDate(value: string | null): value is string {
-  return Boolean(value && /^\d{4}-\d{2}-\d{2}$/.test(value));
+export function validDate(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || value.startsWith("0000")) return false;
+  const parsed = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+}
+
+export function dateRangeError(fromDate: string, toDate: string): string {
+  if (!validDate(fromDate) || !validDate(toDate)) return "Informe uma data inicial e uma data final válidas.";
+  return fromDate > toDate ? "A data final deve ser igual ou posterior à data inicial." : "";
 }
 
 export function createFilterState(
@@ -51,10 +59,11 @@ export function createFilterState(
   const period: PeriodPreset = requestedPeriod === "7" || requestedPeriod === "90"
     || requestedPeriod === "custom" ? requestedPeriod : "30";
   const presetDates = datesForPreset(period === "custom" ? "30" : period, now);
-  const requestedFrom = source.get("from")?.slice(0, 10) ?? null;
-  const requestedTo = source.get("to")?.slice(0, 10) ?? null;
-  const fromDate = validDate(requestedFrom) ? requestedFrom : presetDates.fromDate;
-  const toDate = validDate(requestedTo) ? requestedTo : presetDates.toDate;
+  // Presets sempre refletem o calendário atual; datas salvas na URL só definem o modo personalizado.
+  const requestedFrom = period === "custom" ? source.get("from")?.slice(0, 10) : undefined;
+  const requestedTo = period === "custom" ? source.get("to")?.slice(0, 10) : undefined;
+  const fromDate = requestedFrom ?? (requestedTo && validDate(requestedTo) && requestedTo < presetDates.fromDate ? requestedTo : presetDates.fromDate);
+  const toDate = requestedTo ?? (validDate(fromDate) && fromDate > presetDates.toDate ? fromDate : presetDates.toDate);
 
   return {
     period,
@@ -63,16 +72,20 @@ export function createFilterState(
     persona: source.get("persona")?.trim() ?? "",
     toolName: source.get("toolName")?.trim() ?? "",
     institution: source.get("institution")?.trim() ?? "",
+    aiProvider: source.get("aiProvider") === "local" ? "local" : source.get("aiProvider") === "external" ? "external" : "",
   };
 }
 
 export function toApiFilters(state: DashboardFilterState): DashboardFilters {
+  const error = dateRangeError(state.fromDate, state.toDate);
+  if (error) throw new RangeError(error);
   return {
     from: `${state.fromDate}T00:00:00`,
     to: `${state.toDate}T23:59:59.999`,
     persona: state.persona,
     toolName: state.toolName,
     institution: state.institution,
+    aiProvider: state.aiProvider,
   };
 }
 
@@ -85,5 +98,6 @@ export function toBrowserSearchParams(state: DashboardFilterState): URLSearchPar
   if (state.persona) params.set("persona", state.persona);
   if (state.toolName) params.set("toolName", state.toolName);
   if (state.institution) params.set("institution", state.institution);
+  if (state.aiProvider) params.set("aiProvider", state.aiProvider);
   return params;
 }

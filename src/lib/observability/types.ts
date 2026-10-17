@@ -3,6 +3,7 @@ export type NullableMetric = number | null;
 export interface ObservabilityFilterOptions {
   personas: string[];
   tools: string[];
+  toolLabels?: Record<string, string>;
   institutions: string[];
   providers: string[];
   channels: string[];
@@ -51,4 +52,11 @@ export interface DashboardFilters {
   persona: string;
   toolName: string;
   institution: string;
+  aiProvider?: "" | "local" | "external";
+}
+
+export interface AiUsageSummary {
+  totalInferences: number;
+  inferencesWithTokenUsage: number;
+  totalTokens: NullableMetric;
 }

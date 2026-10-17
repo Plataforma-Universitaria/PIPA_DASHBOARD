@@ -6,6 +6,7 @@ export const OBSERVABILITY_FILTER_KEYS = [
   "persona",
   "toolName",
   "institution",
+  "aiProvider",
 ] as const;
 
 export type ObservabilityFilterKey = (typeof OBSERVABILITY_FILTER_KEYS)[number];
@@ -22,7 +23,7 @@ export function pickObservabilityFilters(source: URLSearchParams): URLSearchPara
 export function toObservabilitySearchParams(filters: DashboardFilters): URLSearchParams {
   const params = new URLSearchParams();
   for (const key of OBSERVABILITY_FILTER_KEYS) {
-    const value = filters[key].trim();
+    const value = filters[key]?.trim();
     if (value) params.set(key, value);
   }
   return params;
