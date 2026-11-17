@@ -65,8 +65,11 @@
 .channelPreview i { height: 36px; border-radius: 5px; background: linear-gradient(90deg, #286ab0, #4295e9); }.channelPreview i:nth-of-type(2) { width: 40%; }.channelPreview b { color: var(--text-soft); }
 @media (max-width: 1100px) { .cardGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }.exportMenu { grid-column: 1 / -1; } }
 @media (max-width: 700px) { .main { padding: 22px 16px 32px; }.headingRow { align-items: start; }.headingRow p { max-width: 280px; }.refreshButton { width: 42px; padding: 0; font-size: 0; }.filters, .cardGrid, .chartGrid { grid-template-columns: 1fr; }.customDates { grid-template-columns: 1fr; }.metricCard { min-height: 120px; }.chartCard { min-height: 300px; padding: 17px; }.chartCanvas { height: 215px; }.donutChart { width: 210px; height: 210px; }.aiUsage { flex-direction: column; align-items: stretch; } }
-.aiUsage { margin-top: 16px; padding: 20px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 18px; border: 1px solid var(--border); border-radius: var(--radius); background: linear-gradient(150deg, rgb(29 34 38 / 96%), rgb(23 27 31 / 96%)); }
-.aiUsage h2 { color: var(--text-muted); font-size: 13px; font-weight: 400; }
+.aiUsage { margin-top: 16px; padding: 20px; display: grid; gap: 18px; border: 1px solid var(--border); border-radius: var(--radius); background: linear-gradient(150deg, rgb(29 34 38 / 96%), rgb(23 27 31 / 96%)); }
+.aiUsage h2 { font-size: 15px; font-weight: 650; }
+.aiUsageMetrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.aiUsage h3 { color: var(--text-muted); font-size: 13px; font-weight: 400; }
 .aiUsage strong { display: block; margin-top: 8px; font-size: 29px; letter-spacing: -.04em; }
 .aiUsage p { margin-top: 7px; color: var(--text-muted); font-size: 12px; }
 .aiUsage .errorBanner { width: 100%; margin-top: 0; }
+@media (max-width: 700px) { .aiUsageMetrics { grid-template-columns: 1fr; } }

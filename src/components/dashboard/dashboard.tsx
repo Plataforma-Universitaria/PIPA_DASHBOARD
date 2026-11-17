@@ -178,7 +178,7 @@ export function Dashboard({ initialFilters }: DashboardProps) {
         {metricCards.map((card) => <article aria-busy={loading} className={`${styles.metricCard} ${loading ? styles.loading : ""}`} key={card.label}><div className={styles.metricIcon}>{card.icon}</div><p>{card.label}</p>{card.description && <small className={styles.metricDescription}>{card.description}</small>}<div><strong>{loading ? "" : card.value}</strong>{card.variation && !loading && <span title="Variação do número de requisições comparada ao período imediatamente anterior, de mesma duração e com os mesmos filtros.">{card.variation} vs. período anterior</span>}</div></article>)}
       </section>
 
-      <AiUsage fromDate={filters.fromDate} toDate={filters.toDate} provider={filters.aiProvider} refreshVersion={refreshVersion} />
+      <AiUsage fromDate={filters.fromDate} toDate={filters.toDate} provider={filters.aiProvider} persona={filters.persona} institution={filters.institution} toolName={filters.toolName} refreshVersion={refreshVersion} />
 
       <section className={styles.chartGrid} aria-label="Indicadores gráficos">
         <article className={`${styles.chartCard} ${styles.fullWidthChart}`}><div className={styles.chartTitle}><div><p>Uso de ferramentas</p><span>Top 10 por requisições</span></div></div>{loading ? <div className={styles.chartSkeleton} /> : <ToolUsageChart data={data?.topTools ?? []} toolLabels={options.toolLabels} />}</article>

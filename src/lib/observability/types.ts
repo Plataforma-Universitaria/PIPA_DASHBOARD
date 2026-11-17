@@ -59,4 +59,8 @@ export interface AiUsageSummary {
   totalInferences: number;
   inferencesWithTokenUsage: number;
   totalTokens: NullableMetric;
+  inputTokens: NullableMetric;
+  outputTokens: NullableMetric;
+  inferencesWithInputTokens: number;
+  inferencesWithOutputTokens: number;
 }

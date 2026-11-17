@@ -67,7 +67,9 @@ describe("Dashboard", () => {
     expect(screen.getByRole("option", { name: "Obter as notas de uma disciplina" })).toHaveValue("obter_as_notas_de_uma_disciplina");
     fireEvent.change(screen.getByLabelText("Ferramenta"), { target: { value: "obter_as_notas_de_uma_disciplina" } });
     await waitFor(() => expect(window.location.search).toContain("toolName=obter_as_notas_de_uma_disciplina"));
-    await waitFor(() => expect(fetchMock.mock.calls.some(([input]) => String(input).includes("/dashboard?") && String(input).includes("toolName=obter_as_notas_de_uma_disciplina"))).toBe(true));
+    for (const endpoint of ["/dashboard?", "/ai-usage?"]) {
+      await waitFor(() => expect(fetchMock.mock.calls.some(([input]) => String(input).includes(endpoint) && String(input).includes("toolName=obter_as_notas_de_uma_disciplina") && String(input).includes("persona=ALUNO"))).toBe(true));
+    }
     fireEvent.change(screen.getByLabelText("Origem do modelo"), { target: { value: "local" } });
     await waitFor(() => expect(window.location.search).toContain("aiProvider=local"));
     for (const endpoint of ["/dashboard", "/ai-usage"]) {

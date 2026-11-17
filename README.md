@@ -42,9 +42,13 @@ O navegador nunca acessa essa variável. Os Route Handlers em `/api/observabilit
 - layout responsivo e navegação acessível por teclado;
 - conteúdo em largura total, sem sidebar ou barra superior; filtro de ferramenta junto dos demais filtros;
 - seletor global de origem do modelo (Todas, Externo, Local) na área de filtros, sincronizado na URL por `aiProvider`; aplica-se a métricas, gráficos, logs e exportação de ferramentas, além dos tokens; registros sem origem são tratados como externos;
-- consumo de tokens limitado ao período e à origem, independente de persona, instituição e ferramenta; o seletor filtra dados registrados e não altera `AI_ROUTING_MODE`;
-- tokens ausentes exibidos como indisponíveis, total parcial identificado e cobertura informada por quantidade de inferências; CSV/PDF continuam exportando somente execuções de ferramentas;
+- painel de consumo com tokens de entrada, tokens de saída e tokens totais filtrados por período, origem, persona, instituição e ferramenta; os seletores filtram dados registrados e não alteram `AI_ROUTING_MODE`;
+- cada indicador mantém sua própria cobertura de inferências: tokens ausentes são exibidos como indisponíveis, somas parciais são identificadas e zero medido permanece zero; entrada e saída não são usadas para reconstruir um total ausente; CSV/PDF continuam exportando somente execuções de ferramentas;
 - tabelas semanticamente ocultas como alternativa aos gráficos.
+
+O Core deve retornar os novos campos `inputTokens`, `outputTokens`, `inferencesWithInputTokens` e `inferencesWithOutputTokens` em `/api/observability/ai-usage`, além dos campos existentes. Atualize/reinicie os dois serviços para disponibilizar a separação no painel; as somas usam as colunas de tokens existentes. A correlação por turno descrita abaixo acrescenta uma coluna aos logs de ferramentas. Se uma instância antiga do Core ainda não fornecer os novos campos, os dois indicadores permanecem indisponíveis, sem estimar valores.
+
+Para aplicar persona, instituição e ferramenta aos tokens, atualize também a correlação de turnos do Core: `ToolExecutionLog.turnId` é gravado a partir do UUID validado recebido do Guará. Esses recortes contam todas as inferências do turno com uma execução que satisfaça conjuntamente os filtros, incluindo seleção, normalização e resposta; execuções repetidas não multiplicam a soma. Uma mesma conversa com ferramentas diferentes pode aparecer em recortes diferentes, portanto as somas por ferramenta não são parcelas exclusivas. Registros anteriores sem essa associação continuam nas consultas gerais por período/origem, mas não podem ser atribuídos retroativamente a persona, instituição ou ferramenta. A nova coluna anulável e seu índice são criados pelo `ddl-auto=update` no reinício do Core, conforme a configuração atual do projeto.
 
 ## Verificação
 

@@ -7,7 +7,7 @@ export async function GET(request: NextRequest): Promise<Response> {
   const error = queryDateRangeError(source);
   if (error) return apiErrorResponse(new PipaRequestError(error, 400));
   const params = new URLSearchParams();
-  for (const key of ["from", "to", "aiProvider"]) {
+  for (const key of ["from", "to", "aiProvider", "persona", "institution", "toolName"]) {
     const value = source.get(key)?.trim();
     if (value) params.set(key, value);
   }
